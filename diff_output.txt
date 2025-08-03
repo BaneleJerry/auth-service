@@ -1,0 +1,11 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQyMjQ4NDAsImlhdCI6MTc1NDIyMTI0MCwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiOWNiOGE0MGUtYTdkNi00Y2Y4LWE2ZGMtMTQxOWIzNTFhYmE1In0.HxVNdMCyo9qSHCZPZEOdlZz_SwNy3bmGMWzOovnHO7U",
+  "user": {
+    "id": "9cb8a40e-a7d6-4cf8-a6dc-1419b351aba5",
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone_number": "+27831234567",
+    "is_verified": false
+  }
+}
