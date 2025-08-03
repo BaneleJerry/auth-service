@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/BaneleJerry/auth-service/utils"
+	"github.com/golang-jwt/jwt"
 )
 
 type contextKey string
@@ -27,6 +28,14 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 
 		token, claims, err := utils.ValidateJWT(tokenStr)
 		if err != nil || !token.Valid {
+
+			// Check if the error is a validation error and if it is expired
+			if ve, ok := err.(*jwt.ValidationError); ok && ve.Errors&jwt.ValidationErrorExpired != 0 {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+
+			}
+
 			http.Error(w, "Invalid token: "+err.Error(), http.StatusUnauthorized)
 			return
 		}

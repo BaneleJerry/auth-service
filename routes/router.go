@@ -17,9 +17,11 @@ func SetupRouter(handlers *app.Handlers) *chi.Mux {
 	router.Use(middleware.Recoverer)
 
 	// Public routes - no auth required
-	router.Route("/", func(r chi.Router) {
+	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", handlers.AuthHandler.RegisterUser)
 		r.Post("/login", handlers.AuthHandler.LoginUser)
+		r.Post("/refresh-token", handlers.AuthHandler.RefreshTokenHandler)
+
 	})
 
 	// Protected routes - require JWT auth
@@ -27,7 +29,6 @@ func SetupRouter(handlers *app.Handlers) *chi.Mux {
 		r.Use(customMiddleware.JWTAuthMiddleware)
 
 		r.Delete("/logout", handlers.AuthHandler.LogoutHandler)
-		//test ping route
 		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("pong"))
 		})

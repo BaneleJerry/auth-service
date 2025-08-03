@@ -1,5 +1,7 @@
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQyMjQ4NDAsImlhdCI6MTc1NDIyMTI0MCwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiOWNiOGE0MGUtYTdkNi00Y2Y4LWE2ZGMtMTQxOWIzNTFhYmE1In0.HxVNdMCyo9qSHCZPZEOdlZz_SwNy3bmGMWzOovnHO7U",
+  "message": "Login successful",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY4Mjg2ODMsImlhdCI6MTc1NDIzNjY4MywiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiOWNiOGE0MGUtYTdkNi00Y2Y4LWE2ZGMtMTQxOWIzNTFhYmE1In0.ennHNyZTsuKfsYQbsRUp7wJAi-nClSxeWwNu36xLvNE",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQyNDAyODMsImlhdCI6MTc1NDIzNjY4MywiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiOWNiOGE0MGUtYTdkNi00Y2Y4LWE2ZGMtMTQxOWIzNTFhYmE1In0.9UdaSX9ejeU-qHaTbZqGiL7fSKzacz2q9VekSkTM1JY",
   "user": {
     "id": "9cb8a40e-a7d6-4cf8-a6dc-1419b351aba5",
     "email": "user@example.com",

@@ -11,7 +11,7 @@ import (
 
 var ErrMissingSecretKey = jwt.NewValidationError("missing SECRET_KEY", jwt.ValidationErrorUnverifiable)
 
-func GenerateJWT(userID uuid.UUID, email string) (string, error) {
+func GenerateJWT(userID uuid.UUID) (string, error) {
 	secret := os.Getenv("SECRET_KEY")
 	if secret == "" {
 		return "", ErrMissingSecretKey
@@ -24,9 +24,27 @@ func GenerateJWT(userID uuid.UUID, email string) (string, error) {
 	}
 
 	claims := jwt.StandardClaims{
-		Subject: userID.String(),
-		Issuer:   "auth-service",
+		Subject:   userID.String(),
+		Issuer:    "auth-service",
 		ExpiresAt: time.Now().Add(time.Duration(expSeconds) * time.Second).Unix(),
+		IssuedAt:  time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+func GenerateRefreshToken(userID uuid.UUID) (string, error) {
+	secret := os.Getenv("REFRESH_SECRET_KEY")
+	if secret == "" {
+		return "", ErrMissingSecretKey
+	}
+
+	claims := jwt.StandardClaims{
+		Subject: userID.String(),
+		Issuer:  "auth-service",
+		// Set a longer expiration for refresh tokens
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour).Unix(),
 		IssuedAt:  time.Now().Unix(),
 	}
 
@@ -54,6 +72,31 @@ func ValidateJWT(tokenString string) (*jwt.Token, *jwt.StandardClaims, error) {
 
 	if !token.Valid {
 		return nil, nil, jwt.NewValidationError("invalid token", jwt.ValidationErrorMalformed)
+	}
+
+	return token, claims, nil
+}
+
+func ValidateRefreshToken(tokenString string) (*jwt.Token, *jwt.StandardClaims, error) {
+	secret := os.Getenv("REFRESH_SECRET_KEY")
+	if secret == "" {
+		return nil, nil, ErrMissingSecretKey
+	}
+
+	claims := &jwt.StandardClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.NewValidationError("unexpected signing method", jwt.ValidationErrorSignatureInvalid)
+		}
+		return []byte(secret), nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !token.Valid {
+		return nil, nil, jwt.NewValidationError("invalid refresh token", jwt.ValidationErrorMalformed)
 	}
 
 	return token, claims, nil
