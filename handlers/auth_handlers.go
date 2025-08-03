@@ -32,3 +32,20 @@ func (h *AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 }
+
+func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	var userReq dto.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&userReq); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.authService.LoginUser(userReq)
+	if err != nil {
+		http.Error(w, "Failed to Login user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}

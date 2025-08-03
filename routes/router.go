@@ -17,6 +17,7 @@ func SetupRouter(handlers *app.Handlers) *chi.Mux {
 	// Define your routes here
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Post("/register", handlers.AuthHandler.RegisterUser)
+		r.Post("/login",handlers.AuthHandler.LoginUser)
 	})
 
 	return router

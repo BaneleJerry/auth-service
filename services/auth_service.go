@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/BaneleJerry/auth-service/dto"
@@ -41,4 +42,32 @@ func (s *AuthService) RegisterUser(req dto.RegisterUserRequest) (*models.User, e
 	}
 
 	return user, nil
+}
+
+func (s *AuthService) LoginUser(req dto.LoginRequest) (*models.User, error) {
+	user, err := s.GetUserByEmail(req.Email)
+	if err != nil {
+		return nil, err 
+	}
+
+	if checked := utils.CheckPasswordHash(req.Password, user.PasswordHash); checked == false {
+		// Password does not match
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	return user, nil
+}
+
+func (s *AuthService) GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	err := s.db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// return nil and a custom error your handler can interpret
+			return nil, fmt.Errorf("user with email '%s' not found", email)
+		}
+		// log or wrap DB-related errors
+		return nil, fmt.Errorf("error retrieving user: %w", err)
+	}
+	return &user, nil
 }
