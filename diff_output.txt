@@ -1,171 +1,323 @@
 diff --git a/cmd/main.go b/cmd/main.go
-index 6974f2a..5a2e372 100644
+index 5a2e372..dc77615 100644
 --- a/cmd/main.go
 +++ b/cmd/main.go
-@@ -1,50 +1,22 @@
- package main
- 
- import (
--	"time"
-+	"log"
-+	"net/http"
- 
--	"github.com/BaneleJerry/auth-service/models"
--	"github.com/go-faker/faker/v4"
--	"gorm.io/driver/sqlite"
--	"gorm.io/gorm"
-+	"github.com/BaneleJerry/auth-service/app"
-+	"github.com/BaneleJerry/auth-service/database"
-+	"github.com/BaneleJerry/auth-service/routes"
+@@ -7,10 +7,16 @@ import (
+ 	"github.com/BaneleJerry/auth-service/app"
+ 	"github.com/BaneleJerry/auth-service/database"
+ 	"github.com/BaneleJerry/auth-service/routes"
++	"github.com/joho/godotenv"
  )
  
  func main() {
--	gormDB, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
--	if err != nil {
--		panic("failed to connect database")
--	}
--
--	err = gormDB.AutoMigrate(&models.User{})
--	if err != nil {
--		panic("failed to migrate database")
--	}
--
--	FakerUsers := make([]models.User, 0)
--	for range 10 {
--		Address := faker.GetRealAddress().Address
--		FakerUsers = append(FakerUsers, models.User{
--			Email:        faker.Email(),
--			PasswordHash: faker.Password(),
--			FirstName:    faker.Name(),
--			LastName:     faker.LastName(),
--			PhoneNumber:  faker.Phonenumber(),
--			Address:      &Address,
--			DateOfBirth:  &time.Time{},
--			IsVerified:   false,
--		})
--	}
--
--	for range len(FakerUsers) {
--		println("Generated User: " + FakerUsers[0].Email + " - " + FakerUsers[0].FirstName + " " + FakerUsers[0].LastName)
--	}
--	// gormDB.Create(&FakerUsers)
--
--	// Print Users from the database
--	var users []models.User
--	gormDB.Find(&users)
--	for _, user := range users {
--		println(user.Email + " - " + user.FirstName + " " + user.LastName)
--	}
-+
-+	db := database.ConnectDB()
-+
-+	application := app.InitApp(db)
-+
-+	router := routes.SetupRouter(&application.Controllers)
-+
-+	log.Fatal(http.ListenAndServe(":8080", router))
  
- }
++	err := godotenv.Load()
++	if err != nil {
++		log.Fatal("Error loading .env file")
++	}
++
+ 	db := database.ConnectDB()
+ 
+ 	application := app.InitApp(db)
+diff --git a/database/db.go b/database/db.go
+index ef8ec75..bb6348b 100644
+--- a/database/db.go
++++ b/database/db.go
+@@ -1,11 +1,13 @@
+ package database
+ 
+ import (
++	"fmt"
++	"os"
+ 	"time"
+ 
+ 	"github.com/BaneleJerry/auth-service/models"
+ 	"github.com/go-faker/faker/v4"
+-	"gorm.io/driver/sqlite"
++	"gorm.io/driver/postgres"
+ 	"gorm.io/gorm"
+ )
+ 
+@@ -13,12 +15,24 @@ var DB *gorm.DB
+ 
+ func ConnectDB() *gorm.DB {
+ 	var err error
+-	sqliteDialector := sqlite.Open("test.db")
+-	if sqliteDialector == nil {
++
++	dsn := fmt.Sprintf(
++		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
++		os.Getenv("DB_HOST"),
++		os.Getenv("DB_USER"),
++		os.Getenv("DB_PASSWORD"),
++		os.Getenv("DB_NAME"),
++		os.Getenv("DB_PORT"),
++		os.Getenv("DB_SSLMODE"),
++		os.Getenv("DB_TIMEZONE"),
++	)
++
++	postgresDialector := postgres.Open(dsn)
++	if postgresDialector == nil {
+ 		panic("failed to open database")
+ 	}
+ 
+-	DB, err = gorm.Open(sqliteDialector, &gorm.Config{})
++	DB, err = gorm.Open(postgresDialector, &gorm.Config{})
+ 	if err != nil {
+ 		panic("failed to connect database")
+ 	}
+diff --git a/diff_output.txt b/diff_output.txt
+index ae8fe90..e69de29 100644
+--- a/diff_output.txt
++++ b/diff_output.txt
+@@ -1,171 +0,0 @@
+-diff --git a/cmd/main.go b/cmd/main.go
+-index 6974f2a..5a2e372 100644
+---- a/cmd/main.go
+-+++ b/cmd/main.go
+-@@ -1,50 +1,22 @@
+- package main
+- 
+- import (
+--	"time"
+-+	"log"
+-+	"net/http"
+- 
+--	"github.com/BaneleJerry/auth-service/models"
+--	"github.com/go-faker/faker/v4"
+--	"gorm.io/driver/sqlite"
+--	"gorm.io/gorm"
+-+	"github.com/BaneleJerry/auth-service/app"
+-+	"github.com/BaneleJerry/auth-service/database"
+-+	"github.com/BaneleJerry/auth-service/routes"
+- )
+- 
+- func main() {
+--	gormDB, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+--	if err != nil {
+--		panic("failed to connect database")
+--	}
+--
+--	err = gormDB.AutoMigrate(&models.User{})
+--	if err != nil {
+--		panic("failed to migrate database")
+--	}
+--
+--	FakerUsers := make([]models.User, 0)
+--	for range 10 {
+--		Address := faker.GetRealAddress().Address
+--		FakerUsers = append(FakerUsers, models.User{
+--			Email:        faker.Email(),
+--			PasswordHash: faker.Password(),
+--			FirstName:    faker.Name(),
+--			LastName:     faker.LastName(),
+--			PhoneNumber:  faker.Phonenumber(),
+--			Address:      &Address,
+--			DateOfBirth:  &time.Time{},
+--			IsVerified:   false,
+--		})
+--	}
+--
+--	for range len(FakerUsers) {
+--		println("Generated User: " + FakerUsers[0].Email + " - " + FakerUsers[0].FirstName + " " + FakerUsers[0].LastName)
+--	}
+--	// gormDB.Create(&FakerUsers)
+--
+--	// Print Users from the database
+--	var users []models.User
+--	gormDB.Find(&users)
+--	for _, user := range users {
+--		println(user.Email + " - " + user.FirstName + " " + user.LastName)
+--	}
+-+
+-+	db := database.ConnectDB()
+-+
+-+	application := app.InitApp(db)
+-+
+-+	router := routes.SetupRouter(&application.Controllers)
+-+
+-+	log.Fatal(http.ListenAndServe(":8080", router))
+- 
+- }
+-diff --git a/go.mod b/go.mod
+-index f5eb764..d2ee213 100644
+---- a/go.mod
+-+++ b/go.mod
+-@@ -1,11 +1,14 @@
+- module github.com/BaneleJerry/auth-service
+- 
+--go 1.23
+-+go 1.23.0
+- 
+- toolchain go1.23.6
+- 
+- require (
+-+	github.com/go-chi/chi/v5 v5.2.2
+- 	github.com/go-faker/faker/v4 v4.6.0
+-+	github.com/google/uuid v1.6.0
+-+	golang.org/x/crypto v0.40.0
+- 	gorm.io/driver/sqlite v1.5.7
+- 	gorm.io/gorm v1.25.12
+- )
+-@@ -14,5 +17,5 @@ require (
+- 	github.com/jinzhu/inflection v1.0.0 // indirect
+- 	github.com/jinzhu/now v1.1.5 // indirect
+- 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
+--	golang.org/x/text v0.22.0 // indirect
+--)
+-\ No newline at end of file
+-+	golang.org/x/text v0.27.0 // indirect
+-+)
+-diff --git a/go.sum b/go.sum
+-index 2d5e90f..a151d63 100644
+---- a/go.sum
+-+++ b/go.sum
+-@@ -1,13 +1,19 @@
+-+github.com/go-chi/chi/v5 v5.2.2 h1:CMwsvRVTbXVytCk1Wd72Zy1LAsAh9GxMmSNWLHCG618=
+-+github.com/go-chi/chi/v5 v5.2.2/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+- github.com/go-faker/faker/v4 v4.6.0 h1:6aOPzNptRiDwD14HuAnEtlTa+D1IfFuEHO8+vEFwjTs=
+- github.com/go-faker/faker/v4 v4.6.0/go.mod h1:ZmrHuVtTTm2Em9e0Du6CJ9CADaLEzGXW62z1YqFH0m0=
+-+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+-+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+- github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
+- github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
+- github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
+- github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+- github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBWDRM=
+- github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+--golang.org/x/text v0.22.0 h1:bofq7m3/HAFvbF51jz3Q9wLg3jkvSPuiZu/pD1XwgtM=
+--golang.org/x/text v0.22.0/go.mod h1:YRoo4H8PVmsu+E3Ou7cqLVH8oXWIHVoX0jqUWALQhfY=
+-+golang.org/x/crypto v0.40.0 h1:r4x+VvoG5Fm+eJcxMaY8CQM7Lb0l1lsmjGBQ6s8BfKM=
+-+golang.org/x/crypto v0.40.0/go.mod h1:Qr1vMER5WyS2dfPHAlsOj01wgLbsyWtFn/aY+5+ZdxY=
+-+golang.org/x/text v0.27.0 h1:4fGWRpyh641NLlecmyl4LOe6yDdfaYNrGb2zdfo4JV4=
+-+golang.org/x/text v0.27.0/go.mod h1:1D28KMCvyooCX9hBiosv5Tz/+YLxj0j7XhWjpSUF7CU=
+- gorm.io/driver/sqlite v1.5.7 h1:8NvsrhP0ifM7LX9G4zPB97NwovUakUxc+2V2uuf3Z1I=
+- gorm.io/driver/sqlite v1.5.7/go.mod h1:U+J8craQU6Fzkcvu8oLeAQmi50TkwPEhHDEjQZXDah4=
+- gorm.io/gorm v1.25.12 h1:I0u8i2hWQItBq1WfE0o2+WuL9+8L21K9e2HHSTE/0f8=
+-diff --git a/models/User.go b/models/User.go
+-index 13bc326..872ef79 100644
+---- a/models/User.go
+-+++ b/models/User.go
+-@@ -1,17 +1,28 @@
+- package models
+- 
+--import "time"
+-+import (
+-+	"time"
+-+
+-+	"github.com/google/uuid"
+-+	"gorm.io/gorm"
+-+)
+- 
+- type User struct {
+--	ID          uint       `gorm:"primaryKey"`
+--	Email       string     `gorm:"unique;not null"`
+--	PasswordHash string     `gorm:"not null"`
+--	FirstName   string     `gorm:"not null"`
+--	LastName    string     `gorm:"not null"`
+--	PhoneNumber string     `gorm:"unique"`
+--	Address     *string    `gorm:"type:text"`
+--	DateOfBirth *time.Time `gorm:"type:date"`
+--	IsVerified  bool       `gorm:"not null;default:false"`
+--	CreatedAt   time.Time
+--	UpdatedAt   time.Time
+-+	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
+-+	Email        string    `gorm:"uniqueIndex;not null"`
+-+	PasswordHash string    `gorm:"not null"`
+-+	FirstName    string
+-+	LastName     string
+-+	PhoneNumber  string
+-+	Address      *string
+-+	DateOfBirth  *time.Time
+-+	IsVerified   bool
+-+	CreatedAt    time.Time
+-+	UpdatedAt    time.Time
+-+	DeletedAt    gorm.DeletedAt `gorm:"index"`
+-+}
+-+
+-+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+-+	u.ID = uuid.New()
+-+	return
+- }
+-diff --git a/test.db b/test.db
+-index 7d490e9..955f369 100644
+-Binary files a/test.db and b/test.db differ
 diff --git a/go.mod b/go.mod
-index f5eb764..d2ee213 100644
+index d2ee213..e2c49d5 100644
 --- a/go.mod
 +++ b/go.mod
-@@ -1,11 +1,14 @@
- module github.com/BaneleJerry/auth-service
- 
--go 1.23
-+go 1.23.0
- 
- toolchain go1.23.6
- 
- require (
-+	github.com/go-chi/chi/v5 v5.2.2
+@@ -8,14 +8,19 @@ require (
+ 	github.com/go-chi/chi/v5 v5.2.2
  	github.com/go-faker/faker/v4 v4.6.0
-+	github.com/google/uuid v1.6.0
-+	golang.org/x/crypto v0.40.0
- 	gorm.io/driver/sqlite v1.5.7
+ 	github.com/google/uuid v1.6.0
++	github.com/joho/godotenv v1.5.1
+ 	golang.org/x/crypto v0.40.0
+-	gorm.io/driver/sqlite v1.5.7
++	gorm.io/driver/postgres v1.6.0
  	gorm.io/gorm v1.25.12
  )
-@@ -14,5 +17,5 @@ require (
+ 
+ require (
++	github.com/jackc/pgpassfile v1.0.0 // indirect
++	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
++	github.com/jackc/pgx/v5 v5.6.0 // indirect
++	github.com/jackc/puddle/v2 v2.2.2 // indirect
  	github.com/jinzhu/inflection v1.0.0 // indirect
  	github.com/jinzhu/now v1.1.5 // indirect
- 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
--	golang.org/x/text v0.22.0 // indirect
--)
-\ No newline at end of file
-+	golang.org/x/text v0.27.0 // indirect
-+)
+-	github.com/mattn/go-sqlite3 v1.14.24 // indirect
++	golang.org/x/sync v0.16.0 // indirect
+ 	golang.org/x/text v0.27.0 // indirect
+ )
 diff --git a/go.sum b/go.sum
-index 2d5e90f..a151d63 100644
+index a151d63..c60cf14 100644
 --- a/go.sum
 +++ b/go.sum
-@@ -1,13 +1,19 @@
-+github.com/go-chi/chi/v5 v5.2.2 h1:CMwsvRVTbXVytCk1Wd72Zy1LAsAh9GxMmSNWLHCG618=
-+github.com/go-chi/chi/v5 v5.2.2/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+@@ -1,20 +1,44 @@
++github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
++github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
++github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+ github.com/go-chi/chi/v5 v5.2.2 h1:CMwsvRVTbXVytCk1Wd72Zy1LAsAh9GxMmSNWLHCG618=
+ github.com/go-chi/chi/v5 v5.2.2/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
  github.com/go-faker/faker/v4 v4.6.0 h1:6aOPzNptRiDwD14HuAnEtlTa+D1IfFuEHO8+vEFwjTs=
  github.com/go-faker/faker/v4 v4.6.0/go.mod h1:ZmrHuVtTTm2Em9e0Du6CJ9CADaLEzGXW62z1YqFH0m0=
-+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
-+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+ github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+ github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
++github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
++github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
++github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
++github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
++github.com/jackc/pgx/v5 v5.6.0 h1:SWJzexBzPL5jb0GEsrPMLIsi/3jOo7RHlzTjcAeDrPY=
++github.com/jackc/pgx/v5 v5.6.0/go.mod h1:DNZ/vlrUnhWCoFGxHAG8U2ljioxukquj7utPDgtQdTw=
++github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
++github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
  github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
  github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
  github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
  github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
- github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBWDRM=
- github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
--golang.org/x/text v0.22.0 h1:bofq7m3/HAFvbF51jz3Q9wLg3jkvSPuiZu/pD1XwgtM=
--golang.org/x/text v0.22.0/go.mod h1:YRoo4H8PVmsu+E3Ou7cqLVH8oXWIHVoX0jqUWALQhfY=
-+golang.org/x/crypto v0.40.0 h1:r4x+VvoG5Fm+eJcxMaY8CQM7Lb0l1lsmjGBQ6s8BfKM=
-+golang.org/x/crypto v0.40.0/go.mod h1:Qr1vMER5WyS2dfPHAlsOj01wgLbsyWtFn/aY+5+ZdxY=
-+golang.org/x/text v0.27.0 h1:4fGWRpyh641NLlecmyl4LOe6yDdfaYNrGb2zdfo4JV4=
-+golang.org/x/text v0.27.0/go.mod h1:1D28KMCvyooCX9hBiosv5Tz/+YLxj0j7XhWjpSUF7CU=
- gorm.io/driver/sqlite v1.5.7 h1:8NvsrhP0ifM7LX9G4zPB97NwovUakUxc+2V2uuf3Z1I=
- gorm.io/driver/sqlite v1.5.7/go.mod h1:U+J8craQU6Fzkcvu8oLeAQmi50TkwPEhHDEjQZXDah4=
+-github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBWDRM=
+-github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
++github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
++github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
++github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
++github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
++github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
++github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
++github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
++github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
++github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+ golang.org/x/crypto v0.40.0 h1:r4x+VvoG5Fm+eJcxMaY8CQM7Lb0l1lsmjGBQ6s8BfKM=
+ golang.org/x/crypto v0.40.0/go.mod h1:Qr1vMER5WyS2dfPHAlsOj01wgLbsyWtFn/aY+5+ZdxY=
++golang.org/x/sync v0.16.0 h1:ycBJEhp9p4vXvUZNszeOq0kGTPghopOL8q0fq3vstxw=
++golang.org/x/sync v0.16.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
+ golang.org/x/text v0.27.0 h1:4fGWRpyh641NLlecmyl4LOe6yDdfaYNrGb2zdfo4JV4=
+ golang.org/x/text v0.27.0/go.mod h1:1D28KMCvyooCX9hBiosv5Tz/+YLxj0j7XhWjpSUF7CU=
+-gorm.io/driver/sqlite v1.5.7 h1:8NvsrhP0ifM7LX9G4zPB97NwovUakUxc+2V2uuf3Z1I=
+-gorm.io/driver/sqlite v1.5.7/go.mod h1:U+J8craQU6Fzkcvu8oLeAQmi50TkwPEhHDEjQZXDah4=
++gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
++gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
++gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
++gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
++gorm.io/driver/postgres v1.6.0 h1:2dxzU8xJ+ivvqTRph34QX+WrRaJlmfyPqXmoGVjMBa4=
++gorm.io/driver/postgres v1.6.0/go.mod h1:vUw0mrGgrTK+uPHEhAdV4sfFELrByKVGnaVRkXDhtWo=
  gorm.io/gorm v1.25.12 h1:I0u8i2hWQItBq1WfE0o2+WuL9+8L21K9e2HHSTE/0f8=
-diff --git a/models/User.go b/models/User.go
-index 13bc326..872ef79 100644
---- a/models/User.go
-+++ b/models/User.go
-@@ -1,17 +1,28 @@
- package models
- 
--import "time"
-+import (
-+	"time"
-+
-+	"github.com/google/uuid"
-+	"gorm.io/gorm"
-+)
- 
- type User struct {
--	ID          uint       `gorm:"primaryKey"`
--	Email       string     `gorm:"unique;not null"`
--	PasswordHash string     `gorm:"not null"`
--	FirstName   string     `gorm:"not null"`
--	LastName    string     `gorm:"not null"`
--	PhoneNumber string     `gorm:"unique"`
--	Address     *string    `gorm:"type:text"`
--	DateOfBirth *time.Time `gorm:"type:date"`
--	IsVerified  bool       `gorm:"not null;default:false"`
--	CreatedAt   time.Time
--	UpdatedAt   time.Time
-+	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
-+	Email        string    `gorm:"uniqueIndex;not null"`
-+	PasswordHash string    `gorm:"not null"`
-+	FirstName    string
-+	LastName     string
-+	PhoneNumber  string
-+	Address      *string
-+	DateOfBirth  *time.Time
-+	IsVerified   bool
-+	CreatedAt    time.Time
-+	UpdatedAt    time.Time
-+	DeletedAt    gorm.DeletedAt `gorm:"index"`
-+}
-+
-+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-+	u.ID = uuid.New()
-+	return
- }
-diff --git a/test.db b/test.db
-index 7d490e9..955f369 100644
-Binary files a/test.db and b/test.db differ
+ gorm.io/gorm v1.25.12/go.mod h1:xh7N7RHfYlNc5EmcI/El95gXusucDrQnHXe0+CgWcLQ=

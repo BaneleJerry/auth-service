@@ -1,11 +1,13 @@
 package database
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/BaneleJerry/auth-service/models"
 	"github.com/go-faker/faker/v4"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -13,12 +15,24 @@ var DB *gorm.DB
 
 func ConnectDB() *gorm.DB {
 	var err error
-	sqliteDialector := sqlite.Open("test.db")
-	if sqliteDialector == nil {
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_SSLMODE"),
+		os.Getenv("DB_TIMEZONE"),
+	)
+
+	postgresDialector := postgres.Open(dsn)
+	if postgresDialector == nil {
 		panic("failed to open database")
 	}
 
-	DB, err = gorm.Open(sqliteDialector, &gorm.Config{})
+	DB, err = gorm.Open(postgresDialector, &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

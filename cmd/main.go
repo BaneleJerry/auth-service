@@ -7,9 +7,15 @@ import (
 	"github.com/BaneleJerry/auth-service/app"
 	"github.com/BaneleJerry/auth-service/database"
 	"github.com/BaneleJerry/auth-service/routes"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	db := database.ConnectDB()
 
